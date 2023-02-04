@@ -1,0 +1,442 @@
+include $_SERVER['DOCUMENT_ROOT'] . '/includes/db.inc.php';
+
+$number = '';
+$names = array();
+$operators = array();
+$regions = array();
+$status =array();
+$trashes =array();
+$states =array();
+$selected_trash = '';
+
+
+$number = '8';
+$operators = array('BEELINE', 'MEGAFON','MTS', 'ROSTELECOM', 'TELE2', 'YOTA', 'ДРУГОЙ ОПЕРАТОР');
+$regions = array('Республика Адыгея (01)','Республика Алтай (04)', 'Республика Башкортостан (02)');
+$status = array('WELCOME', 'GOLD', 'BLACK JACK', 'BLACK LIST', 'ANONIMUS');
+$trashes = array('АКТИВЕН', 'УДАЛЁН');
+$selected_trash = 'АКТИВЕН';
+$states =array('ОТКРЫТ', 'ЗАКРЫТ');
+
+try
+{
+  $result = $pdo->query('SELECT useres.id, useres.surname, useres.firstname, useres.middle_name FROM useres');
+}
+catch (PDOException $e)
+{
+  $error = 'Ошибка выборки данных клиентов.' . $e->getMessage();
+  include 'error.html.php';
+  exit();
+}
+
+foreach ($result as $row)
+{
+  $names[] = array('id' => $row['id'], 'surname' => $row['surname'], 'firstname' => $row['firstname'], 'middle_name' => $row['middle_name']);
+}
+
+
+
+include  'orders.html.php';
+
+	    <table>
+        <tr><th>Счёт</th><th>Состояние</th><th>Время открытия счёта</th><th>Время закрытия счёта</th><th>Стоимость счёта</th><th>Доплата</th><th>Скидка</th><th>Итого к оплате</th><th>Примечание</th><th>Накладная</th><th>ID клиента</th><th>Номер телефона</th><th>Фамилия</th><th>Имя</th><th>Отчество</th><th>Время рег-ции</th><th>Оператор</th><th>Регион</th><th>Статус</th><th>Опции</th></tr>
+
+	
+	<fieldset>
+        <legend>ОФОРМЛЕНИЕ СЧЁТА</legend>
+  <div>
+   <form action="" method="post">
+	  <div>
+        <label for="number1">ТЕЛЕФОН:  8 ( <input type="text" name="number1" size = "3" maxlength = "3" 
+            id="number1"></label>
+		<label for="number2">) <input type="text" name="number2" size = "3" maxlength = "3" 
+            id="number2"></label>
+		<label for="number3"> - <input type="text" name="number3" size = "2" maxlength = "2" 
+            id="number3"></label>
+		<label for="number4"> - <input type="text" name="number4" size = "2" maxlength = "2" 
+            id="number4"></label>
+      </div>			
+      <div>			
+        <input type="hidden" name="action" value="new">
+	    <input type="submit"   value="ПРОДОЛЖИТЬ" />
+      </div>			
+	</form>
+  </div>
+ 	</fieldset>
+
+
+	   $products_id[] = array('id' => $row['id'], 'product' => $row['product'], 'sex' => $row['sex'], 'material' => $row['material'], 'color' => $row['color'], 'description' => $row['description'], 'readiness' => $row['readiness'], 'availability' => $row['availability'], 'order_id' => $row['order_id'], 'trash' => $row['trash']);
+
+
+   foreach ($products_all as $row)
+   {
+
+  include $_SERVER['DOCUMENT_ROOT'] . '/includes/db.inc.php';
+  
+    try
+    {
+    $sql = 'SELECT services.id AS se_id, services.service, services.measurement, services.material AS se_mat, services.description AS se_desc, services.trash AS se_trash, points.id AS po_id, points.description AS po_desc, points.po_price, points.readiness AS po_read, points.serv_id, points.prod_id, points.order_id AS po_order_id, points.trash AS po_trash, products.id AS pr_id, products.product, products.sex, products.material AS pr_mat, products.color, products.description AS pr_desc, products.readiness AS pr_read, products.availability, products.order_id AS pr_order_id, products.trash AS pr_trash  
+	FROM services INNER JOIN points
+    ON services.id = points.serv_id 
+    INNER JOIN products
+	ON points.prod_id = products.id
+	WHERE points.prod_id = :prod_id';
+    $s = $pdo->prepare($sql);
+    $s->bindValue(':prod_id', $row['id']);
+    $s->execute();
+    
+    }
+    catch (PDOException $e)
+    {
+    $error = 'Ошибка выборки данных234.' . $e->getMessage();
+    include 'error.html.php';
+    exit();
+    }
+	
+	  $products_points = array();
+
+   foreach ($s as $row)
+   {
+	   $products_points[] = array('se_id' => $row['se_id'], 'service' => $row['service'], 'measurement' => $row['measurement'], 'se_mat' => $row['se_mat'], 'se_desc' => $row['se_desc'], 'se_trash' => $row['se_trash'], 'po_id' => $row['po_id'], 'po_desc' => $row['po_desc'], 'po_price' => $row['po_price'], 'po_read' => $row['po_read'], 'serv_id' => $row['serv_id'], 'prod_id' => $row['prod_id'], 'po_order_id' => $row['po_order_id'], 'po_trash' => $row['po_trash'], 'pr_id' => $row['pr_id'], 'product' => $row['product'], 'sex' => $row['sex'], 'pr_mat' => $row['pr_mat'], 'color' => $row['color'], 'pr_desc' => $row['pr_desc'], 'pr_read' => $row['pr_read'], 'availability' => $row['availability'], 'pr_order_id' => $row['pr_order_id'], 'pr_trash' => $row['pr_trash']);
+   }
+   
+
+			  <?php// if (isset($serv_points)) { ?>
+			  <?php foreach ($serv_points as $serv_point): ?>
+			  <?php //if ($serv_point['prod_id'] == $pr_id) { ?>
+              <?php htmlout($serv_point['pr_price']); ?>
+              <?php// } ?>				   
+      <?php endforeach; ?>		   
+              <?php //} ?>
+
+, points.id AS po_id, SUM(points.po_price) AS pr_price, points.prod_id, 'po_id' => $row['po_id'], 'pr_price' => $row['pr_price'], 'prod_id' => $row['prod_id']
+
+
+    try
+    {
+    $sql = 'SELECT services.id AS se_id, services.service, services.measurement, services.material AS se_mat, services.description AS se_desc, services.trash AS se_trash, points.id AS po_id, points.description AS po_desc, points.po_price, SUM(po_price) AS pr_price, points.readiness AS po_read, points.serv_id, points.prod_id, points.order_id AS po_order_id, points.trash AS po_trash  
+	FROM services INNER JOIN points
+    ON services.id = points.serv_id 
+	WHERE points.prod_id = :prod_id';
+    $s = $pdo->prepare($sql);
+    $s->bindValue(':prod_id', $row['pr_id']);
+    $s->execute();
+    
+    }
+    catch (PDOException $e)
+    {
+    $error = 'Ошибка выборки данных234.' . $e->getMessage();
+    include 'error.html.php';
+    exit();
+    }
+	
+	  $serv_points = array();
+
+   foreach ($s as $row)
+   {
+	   $serv_points[] = array('se_id' => $row['se_id'], 'service' => $row['service'], 'measurement' => $row['measurement'], 'se_mat' => $row['se_mat'], 'se_desc' => $row['se_desc'], 'se_trash' => $row['se_trash'], 'po_id' => $row['po_id'], 'po_desc' => $row['po_desc'], 'po_price' => $row['po_price'], 'pr_price' => $row['pr_price'], 'po_read' => $row['po_read'], 'serv_id' => $row['serv_id'], 'prod_id' => $row['prod_id'], 'po_order_id' => $row['po_order_id'], 'po_trash' => $row['po_trash']);
+   }
+   
+
+   foreach ($s as $row)
+   {
+	   	   $products_all[] = array('pr_id' => $row['pr_id'], 'product' => $row['product'], 'sex' => $row['sex'], 'pr_mat' => $row['pr_mat'], 'color' => $row['color'], 'pr_desc' => $row['pr_desc'], 'pr_read' => $row['pr_read'], 'availability' => $row['availability'], 'pr_order_id' => $row['pr_order_id'], 'pr_trash' => $row['pr_trash'], 'se_id' => $row['se_id'], 'service' => $row['service'], 'measurement' => $row['measurement'], 'se_mat' => $row['se_mat'], 'se_desc' => $row['se_desc'], 'se_trash' => $row['se_trash'], 'po_id' => $row['po_id'], 'po_desc' => $row['po_desc'], 'po_price' => $row['po_price'], 'po_read' => $row['po_read'], 'serv_id' => $row['serv_id'], 'prod_id' => $row['prod_id'], 'po_order_id' => $row['po_order_id'], 'po_trash' => $row['po_trash']);
+   }
+
+
+ include $_SERVER['DOCUMENT_ROOT'] . '/includes/db.inc.php';
+ $placeholders = array();
+ $placeholders[':order_id'] = $oid;  
+    try
+    {
+    $sql = 'SELECT services.id AS se_id, services.service, services.measurement, services.material AS se_mat, services.description AS se_desc, services.trash AS se_trash, points.id AS po_id, points.description AS po_desc, points.po_price, points.readiness AS po_read, points.serv_id, points.prod_id, points.order_id AS po_order_id, points.trash AS po_trash  
+	FROM services INNER JOIN points
+    ON services.id = points.serv_id 
+	WHERE points.order_id = :order_id';
+    $s = $pdo->prepare($sql);
+    $s->execute($placeholders);
+    
+    }
+    catch (PDOException $e)
+    {
+    $error = 'Ошибка выборки данных2345.' . $e->getMessage();
+    include 'error.html.php';
+    exit();
+    }
+	
+	  $serv_points = array();
+
+   foreach ($s as $row)
+   {
+	   $serv_points[] = array('se_id' => $row['se_id'], 'service' => $row['service'], 'measurement' => $row['measurement'], 'se_mat' => $row['se_mat'], 'se_desc' => $row['se_desc'], 'se_trash' => $row['se_trash'], 'po_id' => $row['po_id'], 'po_desc' => $row['po_desc'], 'po_price' => $row['po_price'], 'po_read' => $row['po_read'], 'serv_id' => $row['serv_id'], 'prod_id' => $row['prod_id'], 'po_order_id' => $row['po_order_id'], 'po_trash' => $row['po_trash']);
+   }
+
+
+if (isset($_POST['action']) and $_POST['action'] == 'search')
+{
+	$uid = '';
+	$number = '';
+	$number1 = '';
+	$number2 = '';
+	$number3 = '';
+	$number4 = '';
+	$phone = '';
+    $status = '';
+    $operator = '';
+    $region = '';
+    $surname = '';
+    $firstname = '';
+    $middle_name = '';
+    $u_trash = '';
+    	
+	$oid = '';
+	$plus = '';
+	$sale = '';
+	$all_price = '';
+	$date_in = '';
+	$date_out = '';
+	$o_description = '';
+	$state = '';
+	$o_trash = '';
+	
+    $lost = '';	
+    $placeholders = array();
+	$name = '';
+	$order = '';
+	
+	
+	
+	
+  include $_SERVER['DOCUMENT_ROOT'] . '/includes/db.inc.php';
+
+$select = 'SELECT useres.id AS uid, useres.phone, useres.surname, useres.firstname, useres.middle_name, useres.time_reg, useres.operator, useres.region, useres.status, useres.trash AS u_trash, orders.id AS oid, orders.plus, orders.sale, orders.all_price, orders.time_in, orders.time_out, orders.description, orders.state, orders.user_id, orders.trash AS o_trash, points.id AS poid, points.order_id, SUM(points.po_price) AS price';
+$from = ' FROM useres INNER JOIN orders
+        ON useres.id = orders.user_id
+		INNER JOIN points
+		ON orders.id = points.order_id';
+$where  = ' WHERE TRUE';		
+$order = '	ORDER BY time_in DESC';
+$limit = '';	
+
+  if (isset($_POST['number1']) && $_POST['number1'] != '' && is_numeric($_POST['number1']) && isset($_POST['number2']) && $_POST['number2'] != '' && is_numeric($_POST['number2']) && isset($_POST['number3']) && $_POST['number3'] != '' && is_numeric($_POST['number3']) && isset($_POST['number4']) && $_POST['number4'] != '' && is_numeric($_POST['number4']))
+  {
+	  
+	$number = '8';
+    $number1 = $_POST['number1'] ?? false;
+	$number2 = $_POST['number2'] ?? false;
+	$number3 = $_POST['number3'] ?? false;
+	$number4 = $_POST['number4'] ?? false;
+	  	  
+	$phone = $number . $number1 .  $number2 . $number3 . $number4 ;
+	
+    $where .= " AND phone LIKE :phone";
+    $placeholders[':phone'] = $phone;	
+	
+  }
+  
+  if (isset($_POST['name']) && $_POST['name'] != '') 
+  {
+	$name = $_POST['name'] ?? false;
+	$where .= " AND CONCAT(surname, firstname, middle_name) LIKE :name";	
+    $placeholders[':name'] = '%' . $name . '%';
+  }  
+
+  if (isset($_POST['order']) && $_POST['order'] != '') 
+  {
+    $order = $_POST['order'] ?? false;
+	$where .= " AND oid = :oid";	
+    $placeholders[':oid'] = $order;
+  }
+
+  if (isset($_POST['date_in']) && $_POST['date_in'] != '') 
+  {
+	$date_in = $_POST['date_in'] ?? false;
+	$where .= " AND FROM_UNIXTIME(time_in) LIKE :date_in";	
+    $placeholders[':date_in'] = '%' . $date_in . '%';
+  }
+
+  if (isset($_POST['date_out']) && $_POST['date_out'] != '') 
+  {
+	$date_out = $_POST['date_out'] ?? false;
+	$where .= " AND FROM_UNIXTIME(time_out) LIKE :date_out";	
+    $placeholders[':date_out'] = '%' . $date_out . '%';
+  }
+
+  if (isset($_POST['lost']) && $_POST['lost'] != '') 
+   {
+	$lost = $_POST['lost'] ?? false;   
+    $limit = " LIMIT " . $lost;
+    }
+	
+  if (isset($_POST['state']) && $_POST['state'] != '') 
+  {
+	$state = $_POST['state'] ?? false;
+	$where .= " AND state = :state";	
+    $placeholders[':state'] = $state;
+  }	
+
+  if (isset($_POST['o_trash']) && $_POST['o_trash'] != '') 
+  {
+	$o_trash = $_POST['o_trash'] ?? false;
+	$where .= " AND orders.trash = :o_trash";	
+    $placeholders[':o_trash'] = $o_trash;
+  }
+
+  try
+  {
+    $sql = $select . $from . $where . $order . $limit;
+    $s = $pdo->prepare($sql);
+    $s->execute($placeholders);
+  }
+  catch (PDOException $e)
+  {
+    $error = 'Ошибка поиска данных.' . $e -> getMessage();
+    include 'error.html.php';
+    exit();
+  }
+  
+    $orders = array();
+
+ foreach ($s as $row)
+{
+
+$orders[] = array('oid' => $row['oid'], 'price' => $row['price'], 'plus' => $row['plus'], 'sale' => $row['sale'], 'all_price' => $row['all_price'], 'description' => $row['description'], 'state' => $row['state'], 'o_trash' => $row['o_trash'], 'uid' => $row['uid'], 'number' => '8', 'number1' => substr($row['phone'], 1, 3), 'number2' => substr($row['phone'], 4, 3), 'number3' => substr($row['phone'], 7, 2), 'number4' => substr($row['phone'], 9, 2), 'surname' => $row['surname'], 'firstname' => $row['firstname'], 'middle_name' => $row['middle_name'], 'time_reg' => $row['time_reg'], 'operator' => $row['operator'], 'region' => $row['region'], 'status' => $row['status'], 'u_trash' => $row['u_trash']);
+  
+}
+
+
+}
+
+if (isset($_POST['action']) and $_POST['action'] == 'search')
+{
+	$uid = '';
+	$number = '';
+	$number1 = '';
+	$number2 = '';
+	$number3 = '';
+	$number4 = '';
+	$phone = '';
+    $status = '';
+    $operator = '';
+    $region = '';
+    $surname = '';
+    $firstname = '';
+    $middle_name = '';
+    $u_trash = '';
+    	
+	$oid = '';
+	$plus = '';
+	$sale = '';
+	$all_price = '';
+	$date_in = '';
+	$date_out = '';
+	$o_description = '';
+	$state = '';
+	$o_trash = '';
+	
+    $lost = '';	
+	$name = '';
+	$order = '';
+	
+	
+	
+	
+  include $_SERVER['DOCUMENT_ROOT'] . '/includes/db.inc.php';
+
+$select = 'SELECT orders.id, orders.plus, orders.sale, orders.time_in, orders.time_out, orders.description, orders.state, orders.user_id, orders.trash';
+$from = ' FROM orders';
+$where  = ' WHERE TRUE';		
+$order = '	ORDER BY time_in DESC';
+$limit = '';	
+
+    $placeholders = array();
+/*	
+  if (isset($_POST['number1']) && $_POST['number1'] != '' && is_numeric($_POST['number1']) && isset($_POST['number2']) && $_POST['number2'] != '' && is_numeric($_POST['number2']) && isset($_POST['number3']) && $_POST['number3'] != '' && is_numeric($_POST['number3']) && isset($_POST['number4']) && $_POST['number4'] != '' && is_numeric($_POST['number4']))
+  {
+	  
+	$number = '8';
+    $number1 = $_POST['number1'] ?? false;
+	$number2 = $_POST['number2'] ?? false;
+	$number3 = $_POST['number3'] ?? false;
+	$number4 = $_POST['number4'] ?? false;
+	  	  
+	$phone = $number . $number1 .  $number2 . $number3 . $number4 ;
+	
+    $where .= " AND phone LIKE :phone";
+    $placeholders[':phone'] = $phone;	
+	
+  }
+  
+  if (isset($_POST['name']) && $_POST['name'] != '') 
+  {
+	$name = $_POST['name'] ?? false;
+	$where .= " AND CONCAT(surname, firstname, middle_name) LIKE :name";	
+    $placeholders[':name'] = '%' . $name . '%';
+  }  
+*/
+//  if (isset($_POST['order']) && $_POST['order'] != '') 
+//  {
+    $order = $_POST['order'] ?? false;
+//    $order = '24';
+	$where .= " AND id = :id";	
+    $placeholders[':id'] = $order;
+//  }
+/*
+  if (isset($_POST['date_in']) && $_POST['date_in'] != '') 
+  {
+	$date_in = $_POST['date_in'] ?? false;
+	$where .= " AND FROM_UNIXTIME(time_in) LIKE :date_in";	
+    $placeholders[':date_in'] = '%' . $date_in . '%';
+  }
+
+  if (isset($_POST['date_out']) && $_POST['date_out'] != '') 
+  {
+	$date_out = $_POST['date_out'] ?? false;
+	$where .= " AND FROM_UNIXTIME(time_out) LIKE :date_out";	
+    $placeholders[':date_out'] = '%' . $date_out . '%';
+  }
+
+  if (isset($_POST['lost']) && $_POST['lost'] != '') 
+   {
+	$lost = $_POST['lost'] ?? false;   
+    $limit = " LIMIT " . $lost;
+    }
+	
+  if (isset($_POST['state']) && $_POST['state'] != '') 
+  {
+	$state = $_POST['state'] ?? false;
+	$where .= " AND state = :state";	
+    $placeholders[':state'] = $state;
+  }	
+  
+  if (isset($_POST['o_trash']) && $_POST['o_trash'] != '') 
+  {
+	$o_trash = $_POST['o_trash'] ?? false;
+	$where .= " AND orders.trash = :o_trash";	
+    $placeholders[':o_trash'] = $o_trash;
+  }
+*/
+  try
+  {
+    $sql = $select . $from . $where . $order . $limit;
+    $s = $pdo->prepare($sql);
+    $s->execute($placeholders);
+  }
+  catch (PDOException $e)
+  {
+    $error = 'Ошибка поиска данных.' . $e -> getMessage();
+    include 'error.html.php';
+    exit();
+  }
+  
+    $orders = array();
+
+ foreach ($s as $row)
+{
+
+$orders[] = array('id' => $row['id'], 'plus' => $row['plus'], 'sale' => $row['sale'], 'description' => $row['description'], 'state' => $row['state'], 'user_id' => $row['user_id'], 'trash' => $row['trash']);
+  
+}
+
+
+}
