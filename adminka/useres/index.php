@@ -132,7 +132,7 @@ if (isset($_GET['addform']))
 	
 	   $trash = 'АКТИВЕН';
 	   
-  include $_SERVER['DOCUMENT_ROOT'] . '/includes/db.inc.php';
+  
 
   try
   {
